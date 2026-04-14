@@ -159,7 +159,7 @@ export async function activate(context: vscode.ExtensionContext) {
 }
 
 async function refreshActiveEditor() {
-  changedFilesProvider.refresh(currentMode);
+  await changedFilesProvider.refresh(currentMode);
   const editor = vscode.window.activeTextEditor;
   if (editor) {
     await refreshEditor(editor);

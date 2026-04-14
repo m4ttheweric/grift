@@ -110,7 +110,7 @@ export class GitService {
 
   async getChangedFiles(ref: string): Promise<{ path: string; added: number; deleted: number }[]> {
     try {
-      const { stdout } = await this.gitFromRepo(['diff', ref, '--numstat']);
+      const { stdout } = await this.gitFromRepo(['diff', `${ref}..HEAD`, '--numstat']);
       return stdout.trim().split('\n').flatMap(line => {
         if (!line) return [];
         const parts = line.split('\t');
