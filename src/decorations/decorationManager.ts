@@ -96,11 +96,23 @@ export class DecorationManager {
             .filter(pair => pair.newLine <= lastLine)
             .map(pair => ({ range: new vscode.Range(pair.newLine, 0, pair.newLine, 0) })),
         );
+        // Deletions: same anchor-line + -N label approach as committed
         editor.setDecorations(
           this.decorationTypes.deletedUncommitted,
-          uncommittedDiff.deletedGroups.map(group => ({
-            range: new vscode.Range(Math.min(group.anchorLine, lastLine), 0, Math.min(group.anchorLine, lastLine), 0),
-          })),
+          uncommittedDiff.deletedGroups.map(group => {
+            const line = Math.min(group.anchorLine, lastLine);
+            return {
+              range: new vscode.Range(line, 0, line, 0),
+              renderOptions: {
+                before: {
+                  contentText: `-${group.lines.length}`,
+                  color: new vscode.ThemeColor('gitDecoration.deletedResourceForeground'),
+                  backgroundColor: new vscode.ThemeColor('diffEditor.removedTextBackground'),
+                  margin: '0 0.5em 0 0',
+                },
+              },
+            };
+          }),
         );
       } else {
         this.clearUncommittedOverlay(editor);

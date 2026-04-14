@@ -65,7 +65,6 @@ export class DecorationTypes {
     });
     this.deletedUncommitted = vscode.window.createTextEditorDecorationType({
       isWholeLine: true,
-      backgroundColor: new vscode.ThemeColor('diffEditor.removedLineBackground'),
       overviewRulerColor: deletedColor,
       overviewRulerLane: vscode.OverviewRulerLane.Left,
     });
