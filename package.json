@@ -1,0 +1,78 @@
+{
+  "name": "grift",
+  "displayName": "Grift",
+  "description": "Show git diff decorations inline in the editor, like a GitHub/GitLab merge request view",
+  "version": "0.1.0",
+  "publisher": "grift",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "grift.toggle",
+        "title": "Grift: Toggle Diff View"
+      },
+      {
+        "command": "grift.selectDiffBase",
+        "title": "Grift: Select Diff Base"
+      },
+      {
+        "command": "grift.refresh",
+        "title": "Grift: Refresh"
+      },
+      {
+        "command": "grift.showDiff",
+        "title": "Grift: Show Full Diff"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "grift.toggle",
+        "key": "ctrl+shift+d",
+        "mac": "cmd+shift+d"
+      }
+    ],
+    "configuration": {
+      "title": "Grift",
+      "properties": {
+        "grift.defaultDiffBase": {
+          "type": "string",
+          "default": "branchBase",
+          "enum": ["branchBase", "localMain", "originMain", "originBranch"],
+          "enumDescriptions": [
+            "Branch base — changes since branch diverged from main/master",
+            "Local main/master — diff against local main/master tip",
+            "Origin main/master — diff against remote main/master tip",
+            "Origin current branch — unpushed commits vs remote tracking branch"
+          ],
+          "description": "Default diff base mode"
+        },
+        "grift.showGutterIcons": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show colored gutter icons next to changed lines"
+        },
+        "grift.enableOnStartup": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically enable diff view when a file is opened"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --sourcemap",
+    "watch": "npm run build -- --watch",
+    "vscode:prepublish": "npm run build -- --minify"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "esbuild": "^0.20.0",
+    "typescript": "^5.3.0"
+  }
+}
