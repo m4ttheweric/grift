@@ -45,10 +45,12 @@ export class DecorationManager {
     const config = getConfig();
     const lastLine = editor.document.lineCount - 1;
 
-    // Spacer — whole document, keeps all lines at a consistent left indent
-    editor.setDecorations(this.decorationTypes.spacer, [
-      { range: new vscode.Range(0, 0, lastLine, 0) },
-    ]);
+    // Spacer — one entry per line, keeps all lines at a consistent left indent
+    const spacerDecorations: vscode.DecorationOptions[] = [];
+    for (let i = 0; i <= lastLine; i++) {
+      spacerDecorations.push({ range: new vscode.Range(i, 0, i, 0) });
+    }
+    editor.setDecorations(this.decorationTypes.spacer, spacerDecorations);
 
     // Added lines
     const addedDecorations: vscode.DecorationOptions[] = diff.addedLines
