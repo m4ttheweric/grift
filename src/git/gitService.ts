@@ -61,10 +61,19 @@ export class GitService {
     try {
       switch (mode) {
         case 'branchBase': {
-          // Find where current branch diverged from main/master
-          const defaultBranch = await this.getDefaultBranch();
-          const { stdout } = await this.gitFromRepo(['merge-base', 'HEAD', defaultBranch]);
-          return stdout.trim();
+          // Prefer origin/main for merge-base — local main is often stale.
+          // Fall back to local main/master if no remote exists.
+          const candidates = ['origin/main', 'origin/master', 'main', 'master'];
+          for (const branch of candidates) {
+            try {
+              await this.gitFromRepo(['rev-parse', '--verify', branch]);
+              const { stdout } = await this.gitFromRepo(['merge-base', 'HEAD', branch]);
+              return stdout.trim();
+            } catch {
+              continue;
+            }
+          }
+          return undefined;
         }
 
         case 'localMain': {
