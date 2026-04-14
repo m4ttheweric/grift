@@ -60,6 +60,10 @@ export class GitService {
   async resolveRef(mode: DiffBaseMode): Promise<string | undefined> {
     try {
       switch (mode) {
+        case 'branchHead': {
+          return 'HEAD';
+        }
+
         case 'branchBase': {
           // Prefer origin/main for merge-base — local main is often stale.
           // Fall back to local main/master if no remote exists.
@@ -102,11 +106,14 @@ export class GitService {
     }
   }
 
-  async getDiffForFile(ref: string, relativePath: string): Promise<string> {
+  async getDiffForFile(ref: string, relativePath: string, uncommitted = false): Promise<string> {
     try {
+      // Uncommitted: diff working tree against HEAD (ref is 'HEAD').
+      // Committed: use ref..HEAD to exclude working tree changes.
+      const rangeArg = uncommitted ? ref : `${ref}..HEAD`;
       const { stdout } = await this.gitFromRepo([
         'diff',
-        ref,
+        rangeArg,
         '--unified=3',
         '--',
         relativePath,

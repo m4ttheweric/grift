@@ -164,6 +164,7 @@ export async function activate(context: vscode.ExtensionContext) {
 }
 
 const modeLabels: Record<DiffBaseMode, string> = {
+  branchHead: 'Uncommitted',
   branchBase: 'Branch Base',
   localMain: 'Local Main',
   originMain: 'Origin Main',

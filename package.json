@@ -55,9 +55,10 @@
         "grift.defaultDiffBase": {
           "type": "string",
           "default": "branchBase",
-          "enum": ["branchBase", "localMain", "originMain", "originBranch"],
+          "enum": ["branchHead", "branchBase", "localMain", "originMain", "originBranch"],
           "enumDescriptions": [
-            "Branch base — changes since branch diverged from main/master",
+            "Uncommitted — working tree changes not yet committed (vs HEAD)",
+            "Branch base — committed changes since branch diverged from main/master",
             "Local main/master — diff against local main/master tip",
             "Origin main/master — diff against remote main/master tip",
             "Origin current branch — unpushed commits vs remote tracking branch"

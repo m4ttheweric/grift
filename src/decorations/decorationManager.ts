@@ -38,7 +38,7 @@ export class DecorationManager {
       return { added: 0, deleted: 0, modified: 0 };
     }
 
-    const rawDiff = await this.gitService.getDiffForFile(ref, relativePath);
+    const rawDiff = await this.gitService.getDiffForFile(ref, relativePath, this.isUncommitted(mode));
     if (!rawDiff) {
       this.clearDecorations(editor);
       return { added: 0, deleted: 0, modified: 0 };

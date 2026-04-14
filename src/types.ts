@@ -1,4 +1,4 @@
-export type DiffBaseMode = 'branchBase' | 'localMain' | 'originMain' | 'originBranch';
+export type DiffBaseMode = 'branchHead' | 'branchBase' | 'localMain' | 'originMain' | 'originBranch';
 
 export interface LineChange {
   type: 'add' | 'delete' | 'context';
