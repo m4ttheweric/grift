@@ -69,7 +69,7 @@ export class DecorationManager {
             contentText: `-${group.lines.length}`,
             color: new vscode.ThemeColor('gitDecoration.deletedResourceForeground'),
             backgroundColor: new vscode.ThemeColor('diffEditor.removedTextBackground'),
-            margin: '0 0.5em 0 0',
+            margin: '0 0.5em 0 6px',
           },
         },
       };
