@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { GitService } from './git/gitService';
 import { DecorationManager } from './decorations/decorationManager';
-import { BaseContentProvider, BASE_SCHEME } from './git/baseContentProvider';
 import { StatusBar } from './ui/statusBar';
 import { pickDiffBase } from './ui/diffBasePicker';
 import { DeletionHoverProvider } from './ui/deletionHoverProvider';
@@ -13,7 +12,6 @@ let isActive = false;
 let currentMode: DiffBaseMode = 'branchBase';
 let gitService: GitService;
 let decorationManager: DecorationManager;
-let baseContentProvider: BaseContentProvider;
 let statusBar: StatusBar;
 let changedFilesProvider: ChangedFilesProvider;
 let changedFilesView: vscode.TreeView<unknown>;
@@ -25,7 +23,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const config = getConfig();
   currentMode = context.workspaceState.get<DiffBaseMode>('diffBaseMode', config.defaultDiffBase);
-  baseContentProvider = new BaseContentProvider(gitService);
   statusBar = new StatusBar();
 
   const hoverProvider = new DeletionHoverProvider();
@@ -38,11 +35,6 @@ export async function activate(context: vscode.ExtensionContext) {
     showCollapseAll: false,
   });
   context.subscriptions.push(changedFilesView);
-
-  // Register the content provider for base file versions
-  context.subscriptions.push(
-    vscode.workspace.registerTextDocumentContentProvider(BASE_SCHEME, baseContentProvider)
-  );
 
   // Register hover provider — filters internally to only deletion/modification lines
   context.subscriptions.push(
@@ -83,27 +75,6 @@ export async function activate(context: vscode.ExtensionContext) {
       if (isActive) {
         await refreshActiveEditor();
       }
-    })
-  );
-
-  // Show diff — opens VS Code's built-in diff editor for the current file.
-  // Accepts an optional URI argument (passed by the inlay hint click).
-  context.subscriptions.push(
-    vscode.commands.registerCommand('grift.showDiff', async (fileUri?: vscode.Uri) => {
-      const uri = fileUri ?? vscode.window.activeTextEditor?.document.uri;
-      if (!uri) return;
-      const filePath = uri.fsPath;
-      const relativePath = gitService.getRelativePath(filePath);
-      if (!relativePath) return;
-      const ref = await gitService.resolveRef(currentMode);
-      if (!ref) {
-        vscode.window.showWarningMessage('Could not resolve diff base ref');
-        return;
-      }
-      const baseUri = BaseContentProvider.buildUri(relativePath, ref);
-      const currentUri = uri;
-      const title = `${relativePath} (base ↔ current)`;
-      await vscode.commands.executeCommand('vscode.diff', baseUri, currentUri, title);
     })
   );
 
@@ -166,7 +137,7 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(gitHeadWatcher);
 
   // Register disposables
-  context.subscriptions.push(statusBar, decorationManager, baseContentProvider);
+  context.subscriptions.push(statusBar, decorationManager);
 
   // Auto-enable on startup if configured
   if (config.enableOnStartup) {

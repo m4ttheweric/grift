@@ -38,10 +38,6 @@
         "title": "Grift: Refresh"
       },
       {
-        "command": "grift.showDiff",
-        "title": "Grift: Show Full Diff"
-      },
-      {
         "command": "grift.toggleUncommitted",
         "title": "Grift: Toggle Uncommitted Overlay"
       }
