@@ -7,18 +7,31 @@ export class DecorationTypes {
   readonly modified: vscode.TextEditorDecorationType;
   readonly deleted: vscode.TextEditorDecorationType;
 
-  constructor(_extensionPath: string, _showGutterIcons: boolean) {
+  constructor(_extensionPath: string, _showGutterIcons: boolean, uncommitted = false) {
     this.spacer = vscode.window.createTextEditorDecorationType({
       isWholeLine: true,
       before: { contentText: '\u00a0', margin: '0 6px 0 0' },
     });
 
+    // Committed modes use vivid gitDecoration colors.
+    // Uncommitted (branchHead) uses the dimmer editorGutter colors.
+    const addedColor = uncommitted
+      ? new vscode.ThemeColor('editorGutter.addedBackground')
+      : new vscode.ThemeColor('gitDecoration.addedResourceForeground');
+    // Modified uses a blue-toned token to stay clearly distinct from the green added.
+    const modifiedColor = uncommitted
+      ? new vscode.ThemeColor('editorGutter.modifiedBackground')
+      : new vscode.ThemeColor('editorGutter.modifiedBackground');
+    const deletedColor = uncommitted
+      ? new vscode.ThemeColor('editorGutter.deletedBackground')
+      : new vscode.ThemeColor('gitDecoration.deletedResourceForeground');
+
     this.added = vscode.window.createTextEditorDecorationType({
       isWholeLine: true,
       borderWidth: '0 0 0 4px',
       borderStyle: 'solid',
-      borderColor: new vscode.ThemeColor('gitDecoration.addedResourceForeground'),
-      overviewRulerColor: new vscode.ThemeColor('gitDecoration.addedResourceForeground'),
+      borderColor: addedColor,
+      overviewRulerColor: addedColor,
       overviewRulerLane: vscode.OverviewRulerLane.Left,
     });
 
@@ -26,8 +39,8 @@ export class DecorationTypes {
       isWholeLine: true,
       borderWidth: '0 0 0 4px',
       borderStyle: 'solid',
-      borderColor: new vscode.ThemeColor('gitDecoration.modifiedResourceForeground'),
-      overviewRulerColor: new vscode.ThemeColor('gitDecoration.modifiedResourceForeground'),
+      borderColor: modifiedColor,
+      overviewRulerColor: modifiedColor,
       overviewRulerLane: vscode.OverviewRulerLane.Left,
     });
 
@@ -35,8 +48,8 @@ export class DecorationTypes {
       isWholeLine: true,
       borderWidth: '0 0 0 4px',
       borderStyle: 'solid',
-      borderColor: new vscode.ThemeColor('gitDecoration.deletedResourceForeground'),
-      overviewRulerColor: new vscode.ThemeColor('gitDecoration.deletedResourceForeground'),
+      borderColor: deletedColor,
+      overviewRulerColor: deletedColor,
       overviewRulerLane: vscode.OverviewRulerLane.Left,
     });
   }

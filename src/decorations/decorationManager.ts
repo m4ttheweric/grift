@@ -10,6 +10,7 @@ import { getConfig } from '../config';
 export class DecorationManager {
   private decorationTypes: DecorationTypes;
   private debounceTimer: ReturnType<typeof setTimeout> | undefined;
+  private currentMode: DiffBaseMode | undefined;
 
   constructor(
     private gitService: GitService,
@@ -19,6 +20,10 @@ export class DecorationManager {
   ) {
     const config = getConfig();
     this.decorationTypes = new DecorationTypes(extensionPath, config.showGutterIcons);
+  }
+
+  private isUncommitted(mode: DiffBaseMode) {
+    return mode === 'branchHead';
   }
 
   async updateDecorations(editor: vscode.TextEditor, mode: DiffBaseMode): Promise<{ added: number; deleted: number; modified: number }> {
@@ -39,6 +44,14 @@ export class DecorationManager {
     if (!rawDiff) {
       this.clearDecorations(editor);
       return { added: 0, deleted: 0, modified: 0 };
+    }
+
+    // Recreate decoration types if committed/uncommitted status changed
+    if (mode !== this.currentMode) {
+      this.currentMode = mode;
+      this.decorationTypes.dispose();
+      const config = getConfig();
+      this.decorationTypes = new DecorationTypes(this.extensionPath, config.showGutterIcons, this.isUncommitted(mode));
     }
 
     const diff = parseDiff(rawDiff);
@@ -119,7 +132,7 @@ export class DecorationManager {
   recreateDecorationTypes() {
     this.decorationTypes.dispose();
     const config = getConfig();
-    this.decorationTypes = new DecorationTypes(this.extensionPath, config.showGutterIcons, config.showBackgroundColors);
+    this.decorationTypes = new DecorationTypes(this.extensionPath, config.showGutterIcons, this.isUncommitted(this.currentMode ?? 'branchHead'));
   }
 
   dispose() {
