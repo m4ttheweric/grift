@@ -46,8 +46,10 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('grift.toggle', async () => {
       isActive = !isActive;
       if (isActive) {
+        await setIndentGuidesVisible(false);
         await refreshActiveEditor();
       } else {
+        await setIndentGuidesVisible(true);
         clearAllEditors();
         statusBar.update(false);
         updateViewDescription();
@@ -142,6 +144,7 @@ export async function activate(context: vscode.ExtensionContext) {
   // Auto-enable on startup if configured
   if (config.enableOnStartup) {
     isActive = true;
+    await setIndentGuidesVisible(false);
     await refreshActiveEditor();
   } else {
     statusBar.update(false);
@@ -157,6 +160,24 @@ const modeLabels: Record<DiffBaseMode, string> = {
 
 function updateViewDescription() {
   changedFilesView.description = isActive ? modeLabels[currentMode] : 'off';
+}
+
+let originalIndentGuides: unknown;
+let originalBracketPairGuides: unknown;
+
+async function setIndentGuidesVisible(visible: boolean) {
+  const config = vscode.workspace.getConfiguration('editor');
+  if (!visible) {
+    // Save current values before hiding
+    originalIndentGuides = config.get('guides.indentation');
+    originalBracketPairGuides = config.get('guides.bracketPairs');
+    await config.update('guides.indentation', false, vscode.ConfigurationTarget.Workspace);
+    await config.update('guides.bracketPairs', false, vscode.ConfigurationTarget.Workspace);
+  } else {
+    // Restore saved values (undefined = remove workspace override, falls back to user/default)
+    await config.update('guides.indentation', originalIndentGuides ?? undefined, vscode.ConfigurationTarget.Workspace);
+    await config.update('guides.bracketPairs', originalBracketPairGuides ?? undefined, vscode.ConfigurationTarget.Workspace);
+  }
 }
 
 async function refreshActiveEditor() {
