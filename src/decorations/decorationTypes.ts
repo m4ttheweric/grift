@@ -13,23 +13,19 @@ export class DecorationTypes {
       before: { contentText: '\u00a0', margin: '0 6px 0 0' },
     });
 
-    // Committed modes use vivid gitDecoration colors.
-    // Uncommitted (branchHead) uses the dimmer editorGutter colors.
-    const addedColor = uncommitted
-      ? new vscode.ThemeColor('editorGutter.addedBackground')
-      : new vscode.ThemeColor('gitDecoration.addedResourceForeground');
-    // Modified uses a blue-toned token to stay clearly distinct from the green added.
-    const modifiedColor = uncommitted
-      ? new vscode.ThemeColor('editorGutter.modifiedBackground')
-      : new vscode.ThemeColor('editorGutter.modifiedBackground');
-    const deletedColor = uncommitted
-      ? new vscode.ThemeColor('editorGutter.deletedBackground')
-      : new vscode.ThemeColor('gitDecoration.deletedResourceForeground');
+    // Committed: solid 4px border (vivid — these changes are locked in)
+    // Uncommitted: dashed 2px border (same colors, visually lighter — still in progress)
+    const borderStyle = uncommitted ? 'dashed' : 'solid';
+    const borderWidth = uncommitted ? '0 0 0 2px' : '0 0 0 4px';
+
+    const addedColor = new vscode.ThemeColor('gitDecoration.addedResourceForeground');
+    const modifiedColor = new vscode.ThemeColor('editorGutter.modifiedBackground');
+    const deletedColor = new vscode.ThemeColor('gitDecoration.deletedResourceForeground');
 
     this.added = vscode.window.createTextEditorDecorationType({
       isWholeLine: true,
-      borderWidth: '0 0 0 4px',
-      borderStyle: 'solid',
+      borderWidth,
+      borderStyle,
       borderColor: addedColor,
       overviewRulerColor: addedColor,
       overviewRulerLane: vscode.OverviewRulerLane.Left,
@@ -37,8 +33,8 @@ export class DecorationTypes {
 
     this.modified = vscode.window.createTextEditorDecorationType({
       isWholeLine: true,
-      borderWidth: '0 0 0 4px',
-      borderStyle: 'solid',
+      borderWidth,
+      borderStyle,
       borderColor: modifiedColor,
       overviewRulerColor: modifiedColor,
       overviewRulerLane: vscode.OverviewRulerLane.Left,
@@ -46,8 +42,8 @@ export class DecorationTypes {
 
     this.deleted = vscode.window.createTextEditorDecorationType({
       isWholeLine: true,
-      borderWidth: '0 0 0 4px',
-      borderStyle: 'solid',
+      borderWidth,
+      borderStyle,
       borderColor: deletedColor,
       overviewRulerColor: deletedColor,
       overviewRulerLane: vscode.OverviewRulerLane.Left,
