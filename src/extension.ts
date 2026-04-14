@@ -5,6 +5,7 @@ import { BaseContentProvider, BASE_SCHEME } from './git/baseContentProvider';
 import { StatusBar } from './ui/statusBar';
 import { pickDiffBase } from './ui/diffBasePicker';
 import { DeletionHoverProvider } from './ui/deletionHoverProvider';
+import { ChangedFilesProvider } from './ui/changedFilesProvider';
 import { DiffBaseMode } from './types';
 import { getConfig } from './config';
 
@@ -14,6 +15,7 @@ let gitService: GitService;
 let decorationManager: DecorationManager;
 let baseContentProvider: BaseContentProvider;
 let statusBar: StatusBar;
+let changedFilesProvider: ChangedFilesProvider;
 
 export async function activate(context: vscode.ExtensionContext) {
   gitService = new GitService();
@@ -27,6 +29,11 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const hoverProvider = new DeletionHoverProvider();
   decorationManager = new DecorationManager(gitService, context.extensionPath, hoverProvider);
+  changedFilesProvider = new ChangedFilesProvider(gitService);
+
+  context.subscriptions.push(
+    vscode.window.registerTreeDataProvider('grift.changedFiles', changedFilesProvider)
+  );
 
   // Register the content provider for base file versions
   context.subscriptions.push(
@@ -152,6 +159,7 @@ export async function activate(context: vscode.ExtensionContext) {
 }
 
 async function refreshActiveEditor() {
+  changedFilesProvider.refresh(currentMode);
   const editor = vscode.window.activeTextEditor;
   if (editor) {
     await refreshEditor(editor);
@@ -169,6 +177,7 @@ function clearAllEditors() {
   for (const editor of vscode.window.visibleTextEditors) {
     decorationManager.clearDecorations(editor);
   }
+  changedFilesProvider.clear();
 }
 
 export function deactivate() {}

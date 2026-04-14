@@ -108,6 +108,24 @@ export class GitService {
     }
   }
 
+  async getChangedFiles(ref: string): Promise<{ path: string; added: number; deleted: number }[]> {
+    try {
+      const { stdout } = await this.gitFromRepo(['diff', ref, '--numstat']);
+      return stdout.trim().split('\n').flatMap(line => {
+        if (!line) return [];
+        const parts = line.split('\t');
+        if (parts[0] === '-') return []; // binary file
+        return [{
+          path: parts[2],
+          added: parseInt(parts[0], 10) || 0,
+          deleted: parseInt(parts[1], 10) || 0,
+        }];
+      });
+    } catch {
+      return [];
+    }
+  }
+
   async getDiffStats(ref: string): Promise<{ added: number; deleted: number }> {
     try {
       const { stdout } = await this.gitFromRepo([

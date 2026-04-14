@@ -15,6 +15,15 @@
   "activationEvents": ["onStartupFinished"],
   "main": "./dist/extension.js",
   "contributes": {
+    "views": {
+      "scm": [
+        {
+          "id": "grift.changedFiles",
+          "name": "Grift",
+          "when": "true"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "grift.toggle",
