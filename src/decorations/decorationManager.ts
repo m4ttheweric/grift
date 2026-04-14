@@ -45,6 +45,11 @@ export class DecorationManager {
     const config = getConfig();
     const lastLine = editor.document.lineCount - 1;
 
+    // Spacer — whole document, keeps all lines at a consistent left indent
+    editor.setDecorations(this.decorationTypes.spacer, [
+      { range: new vscode.Range(0, 0, lastLine, 0) },
+    ]);
+
     // Added lines
     const addedDecorations: vscode.DecorationOptions[] = diff.addedLines
       .filter(line => line <= lastLine)
@@ -69,7 +74,7 @@ export class DecorationManager {
             contentText: `-${group.lines.length}`,
             color: new vscode.ThemeColor('gitDecoration.deletedResourceForeground'),
             backgroundColor: new vscode.ThemeColor('diffEditor.removedTextBackground'),
-            margin: '0 0.5em 0 6px',
+            margin: '0 0.5em 0 0',
           },
         },
       };
@@ -93,6 +98,7 @@ export class DecorationManager {
   }
 
   clearDecorations(editor: vscode.TextEditor) {
+    editor.setDecorations(this.decorationTypes.spacer, []);
     editor.setDecorations(this.decorationTypes.added, []);
     editor.setDecorations(this.decorationTypes.modified, []);
     editor.setDecorations(this.decorationTypes.deleted, []);
