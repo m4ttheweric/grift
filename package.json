@@ -4,6 +4,10 @@
   "description": "Show git diff decorations inline in the editor, like a GitHub/GitLab merge request view",
   "version": "0.1.0",
   "publisher": "grift",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/m4ttheweric/grift"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -67,11 +71,14 @@
   "scripts": {
     "build": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --sourcemap",
     "watch": "npm run build -- --watch",
-    "vscode:prepublish": "npm run build -- --minify"
+    "vscode:prepublish": "npm run build -- --minify",
+    "package": "vsce package",
+    "install-local": "npm run package && /Applications/Visual\\ Studio\\ Code.app/Contents/Resources/app/bin/code --install-extension grift-0.1.0.vsix --force && /usr/local/bin/cursor --install-extension grift-0.1.0.vsix --force && /Applications/Antigravity.app/Contents/Resources/app/bin/antigravity --install-extension grift-0.1.0.vsix --force"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
     "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.0.0",
     "esbuild": "^0.20.0",
     "typescript": "^5.3.0"
   }
