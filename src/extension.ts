@@ -16,6 +16,7 @@ let decorationManager: DecorationManager;
 let baseContentProvider: BaseContentProvider;
 let statusBar: StatusBar;
 let changedFilesProvider: ChangedFilesProvider;
+let changedFilesView: vscode.TreeView<unknown>;
 
 export async function activate(context: vscode.ExtensionContext) {
   gitService = new GitService();
@@ -31,9 +32,11 @@ export async function activate(context: vscode.ExtensionContext) {
   decorationManager = new DecorationManager(gitService, context.extensionPath, hoverProvider);
   changedFilesProvider = new ChangedFilesProvider(gitService);
 
-  context.subscriptions.push(
-    vscode.window.registerTreeDataProvider('grift.changedFiles', changedFilesProvider)
-  );
+  changedFilesView = vscode.window.createTreeView('grift.changedFiles', {
+    treeDataProvider: changedFilesProvider,
+    showCollapseAll: false,
+  });
+  context.subscriptions.push(changedFilesView);
 
   // Register the content provider for base file versions
   context.subscriptions.push(
@@ -54,6 +57,7 @@ export async function activate(context: vscode.ExtensionContext) {
       } else {
         clearAllEditors();
         statusBar.update(false);
+        updateViewDescription();
       }
     })
   );
@@ -158,7 +162,19 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 }
 
+const modeLabels: Record<DiffBaseMode, string> = {
+  branchBase: 'Branch Base',
+  localMain: 'Local Main',
+  originMain: 'Origin Main',
+  originBranch: 'Origin Branch',
+};
+
+function updateViewDescription() {
+  changedFilesView.description = isActive ? modeLabels[currentMode] : 'off';
+}
+
 async function refreshActiveEditor() {
+  updateViewDescription();
   await changedFilesProvider.refresh(currentMode);
   const editor = vscode.window.activeTextEditor;
   if (editor) {
