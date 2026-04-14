@@ -20,66 +20,53 @@ export class DecorationTypes {
       before: { contentText: '\u00a0', margin: '0 6px 0 0' },
     });
 
-    // Committed — vivid colors, bold 4px border
-    const addedVivid = new vscode.ThemeColor('gitDecoration.addedResourceForeground');
-    const modifiedVivid = new vscode.ThemeColor('gitDecoration.modifiedResourceForeground');
-    const deletedVivid = new vscode.ThemeColor('gitDecoration.deletedResourceForeground');
+    // Committed — vivid 4px border, no background fill
+    const addedColor = new vscode.ThemeColor('editorGutter.addedBackground');
+    const modifiedColor = new vscode.ThemeColor('editorGutter.modifiedBackground');
+    const deletedColor = new vscode.ThemeColor('editorGutter.deletedBackground');
 
     this.added = vscode.window.createTextEditorDecorationType({
       isWholeLine: true,
       borderWidth: '0 0 0 4px',
       borderStyle: 'solid',
-      borderColor: addedVivid,
-      overviewRulerColor: addedVivid,
+      borderColor: addedColor,
+      overviewRulerColor: addedColor,
       overviewRulerLane: vscode.OverviewRulerLane.Left,
     });
     this.modified = vscode.window.createTextEditorDecorationType({
       isWholeLine: true,
       borderWidth: '0 0 0 4px',
       borderStyle: 'solid',
-      borderColor: modifiedVivid,
-      overviewRulerColor: modifiedVivid,
+      borderColor: modifiedColor,
+      overviewRulerColor: modifiedColor,
       overviewRulerLane: vscode.OverviewRulerLane.Left,
     });
     this.deleted = vscode.window.createTextEditorDecorationType({
       isWholeLine: true,
       borderWidth: '0 0 0 4px',
       borderStyle: 'solid',
-      borderColor: deletedVivid,
-      overviewRulerColor: deletedVivid,
+      borderColor: deletedColor,
+      overviewRulerColor: deletedColor,
       overviewRulerLane: vscode.OverviewRulerLane.Left,
     });
 
-    // Uncommitted overlay — dimmer gutter colors, subtle background, thin 2px border
-    const addedDim = new vscode.ThemeColor('editorGutter.addedBackground');
-    const modifiedDim = new vscode.ThemeColor('editorGutter.modifiedBackground');
-    const deletedDim = new vscode.ThemeColor('editorGutter.deletedBackground');
-
+    // Uncommitted overlay — background fill only, no border (avoids competing with committed border)
     this.addedUncommitted = vscode.window.createTextEditorDecorationType({
       isWholeLine: true,
       backgroundColor: new vscode.ThemeColor('diffEditor.insertedLineBackground'),
-      borderWidth: '0 0 0 2px',
-      borderStyle: 'solid',
-      borderColor: addedDim,
-      overviewRulerColor: addedDim,
+      overviewRulerColor: addedColor,
       overviewRulerLane: vscode.OverviewRulerLane.Left,
     });
     this.modifiedUncommitted = vscode.window.createTextEditorDecorationType({
       isWholeLine: true,
       backgroundColor: new vscode.ThemeColor('diffEditor.changedLineBackground'),
-      borderWidth: '0 0 0 2px',
-      borderStyle: 'solid',
-      borderColor: modifiedDim,
-      overviewRulerColor: modifiedDim,
+      overviewRulerColor: modifiedColor,
       overviewRulerLane: vscode.OverviewRulerLane.Left,
     });
     this.deletedUncommitted = vscode.window.createTextEditorDecorationType({
       isWholeLine: true,
       backgroundColor: new vscode.ThemeColor('diffEditor.removedLineBackground'),
-      borderWidth: '0 0 0 2px',
-      borderStyle: 'solid',
-      borderColor: deletedDim,
-      overviewRulerColor: deletedDim,
+      overviewRulerColor: deletedColor,
       overviewRulerLane: vscode.OverviewRulerLane.Left,
     });
   }
