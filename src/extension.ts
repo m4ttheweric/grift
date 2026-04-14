@@ -6,6 +6,7 @@ import { StatusBar } from './ui/statusBar';
 import { pickDiffBase } from './ui/diffBasePicker';
 import { DeletionHoverProvider } from './ui/deletionHoverProvider';
 import { ChangedFilesProvider } from './ui/changedFilesProvider';
+import { UnchangedFoldingProvider } from './ui/unchangedFoldingProvider';
 import { DiffBaseMode } from './types';
 import { getConfig } from './config';
 
@@ -17,6 +18,8 @@ let baseContentProvider: BaseContentProvider;
 let statusBar: StatusBar;
 let changedFilesProvider: ChangedFilesProvider;
 let changedFilesView: vscode.TreeView<unknown>;
+let foldingProvider: UnchangedFoldingProvider;
+let isFoldingUnchanged = false;
 
 export async function activate(context: vscode.ExtensionContext) {
   gitService = new GitService();
@@ -29,7 +32,13 @@ export async function activate(context: vscode.ExtensionContext) {
   statusBar = new StatusBar();
 
   const hoverProvider = new DeletionHoverProvider();
-  decorationManager = new DecorationManager(gitService, context.extensionPath, hoverProvider);
+  foldingProvider = new UnchangedFoldingProvider();
+  decorationManager = new DecorationManager(gitService, context.extensionPath, hoverProvider, foldingProvider);
+
+  context.subscriptions.push(
+    vscode.languages.registerFoldingRangeProvider({ pattern: '**/*' }, foldingProvider),
+    foldingProvider,
+  );
   changedFilesProvider = new ChangedFilesProvider(gitService);
 
   changedFilesView = vscode.window.createTreeView('grift.changedFiles', {
@@ -58,6 +67,7 @@ export async function activate(context: vscode.ExtensionContext) {
         clearAllEditors();
         statusBar.update(false);
         updateViewDescription();
+        isFoldingUnchanged = false;
       }
     })
   );
@@ -103,6 +113,27 @@ export async function activate(context: vscode.ExtensionContext) {
       const currentUri = uri;
       const title = `${relativePath} (base ↔ current)`;
       await vscode.commands.executeCommand('vscode.diff', baseUri, currentUri, title);
+    })
+  );
+
+  // Fold/unfold unchanged regions
+  context.subscriptions.push(
+    vscode.commands.registerCommand('grift.toggleFoldUnchanged', async () => {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor) return;
+
+      if (isFoldingUnchanged) {
+        await vscode.commands.executeCommand('editor.unfoldAll');
+        isFoldingUnchanged = false;
+      } else {
+        const midLines = foldingProvider.getMidLines(editor.document.uri.toString());
+        if (midLines.length === 0) {
+          vscode.window.showInformationMessage('No unchanged regions to fold — enable Grift first.');
+          return;
+        }
+        await vscode.commands.executeCommand('editor.fold', { selectionLines: midLines });
+        isFoldingUnchanged = true;
+      }
     })
   );
 
