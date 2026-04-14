@@ -40,10 +40,6 @@
       {
         "command": "grift.showDiff",
         "title": "Grift: Show Full Diff"
-      },
-      {
-        "command": "grift.toggleFoldUnchanged",
-        "title": "Grift: Toggle Fold Unchanged"
       }
     ],
     "keybindings": [

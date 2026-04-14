@@ -3,7 +3,6 @@ import { GitService } from '../git/gitService';
 import { parseDiff } from '../git/diffParser';
 import { DecorationTypes } from './decorationTypes';
 import { DeletionHoverProvider } from '../ui/deletionHoverProvider';
-import { UnchangedFoldingProvider } from '../ui/unchangedFoldingProvider';
 import { DiffBaseMode } from '../types';
 import { getConfig } from '../config';
 
@@ -16,7 +15,6 @@ export class DecorationManager {
     private gitService: GitService,
     private extensionPath: string,
     private hoverProvider: DeletionHoverProvider,
-    private foldingProvider?: UnchangedFoldingProvider,
   ) {
     const config = getConfig();
     this.decorationTypes = new DecorationTypes(extensionPath, config.showGutterIcons);
@@ -55,7 +53,6 @@ export class DecorationManager {
     }
 
     const diff = parseDiff(rawDiff);
-    const config = getConfig();
     const lastLine = editor.document.lineCount - 1;
 
     // Spacer — one entry per line, keeps all lines at a consistent left indent
@@ -79,7 +76,7 @@ export class DecorationManager {
         range: new vscode.Range(pair.newLine, 0, pair.newLine, 0),
       }));
 
-    // Deleted groups — label rendered via `after` with theme red colors
+    // Deleted groups — label rendered via `before` with theme red colors
     const deletedDecorations: vscode.DecorationOptions[] = diff.deletedGroups.map(group => {
       const line = Math.min(group.anchorLine, lastLine);
       return {
@@ -102,9 +99,6 @@ export class DecorationManager {
     // Update hover provider with deletion/modification data for this file
     this.hoverProvider.update(editor.document.uri.toString(), diff.deletedGroups, diff.modifiedPairs);
 
-    // Update folding provider with unchanged regions
-    this.foldingProvider?.update(editor.document.uri.toString(), diff.hunks, editor.document.lineCount);
-
     return {
       added: diff.addedLines.length,
       deleted: diff.deletedGroups.reduce((sum, g) => sum + g.lines.length, 0),
@@ -118,7 +112,6 @@ export class DecorationManager {
     editor.setDecorations(this.decorationTypes.modified, []);
     editor.setDecorations(this.decorationTypes.deleted, []);
     this.hoverProvider.clear(editor.document.uri.toString());
-    this.foldingProvider?.clear(editor.document.uri.toString());
   }
 
   debounceUpdate(editor: vscode.TextEditor, mode: DiffBaseMode, callback?: (stats: { added: number; deleted: number; modified: number }) => void) {
