@@ -40,6 +40,10 @@
       {
         "command": "grift.showDiff",
         "title": "Grift: Show Full Diff"
+      },
+      {
+        "command": "grift.toggleUncommitted",
+        "title": "Grift: Toggle Uncommitted Overlay"
       }
     ],
     "keybindings": [
@@ -55,9 +59,8 @@
         "grift.defaultDiffBase": {
           "type": "string",
           "default": "branchBase",
-          "enum": ["branchHead", "branchBase", "localMain", "originMain", "originBranch"],
+          "enum": ["branchBase", "localMain", "originMain", "originBranch"],
           "enumDescriptions": [
-            "Uncommitted — working tree changes not yet committed (vs HEAD)",
             "Branch base — committed changes since branch diverged from main/master",
             "Local main/master — diff against local main/master tip",
             "Origin main/master — diff against remote main/master tip",

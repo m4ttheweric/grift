@@ -107,6 +107,20 @@ export async function activate(context: vscode.ExtensionContext) {
     })
   );
 
+  // Toggle uncommitted overlay
+  context.subscriptions.push(
+    vscode.commands.registerCommand('grift.toggleUncommitted', async () => {
+      decorationManager.showUncommittedOverlay = !decorationManager.showUncommittedOverlay;
+      if (isActive) {
+        await refreshActiveEditor();
+      }
+      vscode.window.setStatusBarMessage(
+        decorationManager.showUncommittedOverlay ? 'Grift: Uncommitted overlay on' : 'Grift: Uncommitted overlay off',
+        2000,
+      );
+    })
+  );
+
   // Active editor change
   context.subscriptions.push(
     vscode.window.onDidChangeActiveTextEditor(async (editor) => {
@@ -164,7 +178,6 @@ export async function activate(context: vscode.ExtensionContext) {
 }
 
 const modeLabels: Record<DiffBaseMode, string> = {
-  branchHead: 'Uncommitted',
   branchBase: 'Branch Base',
   localMain: 'Local Main',
   originMain: 'Origin Main',

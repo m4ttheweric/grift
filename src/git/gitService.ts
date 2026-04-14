@@ -60,10 +60,6 @@ export class GitService {
   async resolveRef(mode: DiffBaseMode): Promise<string | undefined> {
     try {
       switch (mode) {
-        case 'branchHead': {
-          return 'HEAD';
-        }
-
         case 'branchBase': {
           // Prefer origin/main for merge-base — local main is often stale.
           // Fall back to local main/master if no remote exists.

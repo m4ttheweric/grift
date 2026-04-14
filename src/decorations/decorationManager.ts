@@ -9,7 +9,7 @@ import { getConfig } from '../config';
 export class DecorationManager {
   private decorationTypes: DecorationTypes;
   private debounceTimer: ReturnType<typeof setTimeout> | undefined;
-  private currentMode: DiffBaseMode | undefined;
+  showUncommittedOverlay = false;
 
   constructor(
     private gitService: GitService,
@@ -18,10 +18,6 @@ export class DecorationManager {
   ) {
     const config = getConfig();
     this.decorationTypes = new DecorationTypes(extensionPath, config.showGutterIcons);
-  }
-
-  private isUncommitted(mode: DiffBaseMode) {
-    return mode === 'branchHead';
   }
 
   async updateDecorations(editor: vscode.TextEditor, mode: DiffBaseMode): Promise<{ added: number; deleted: number; modified: number }> {
@@ -38,18 +34,10 @@ export class DecorationManager {
       return { added: 0, deleted: 0, modified: 0 };
     }
 
-    const rawDiff = await this.gitService.getDiffForFile(ref, relativePath, this.isUncommitted(mode));
+    const rawDiff = await this.gitService.getDiffForFile(ref, relativePath, mode === 'branchHead');
     if (!rawDiff) {
       this.clearDecorations(editor);
       return { added: 0, deleted: 0, modified: 0 };
-    }
-
-    // Recreate decoration types if committed/uncommitted status changed
-    if (mode !== this.currentMode) {
-      this.currentMode = mode;
-      this.decorationTypes.dispose();
-      const config = getConfig();
-      this.decorationTypes = new DecorationTypes(this.extensionPath, config.showGutterIcons, this.isUncommitted(mode));
     }
 
     const diff = parseDiff(rawDiff);
@@ -62,21 +50,15 @@ export class DecorationManager {
     }
     editor.setDecorations(this.decorationTypes.spacer, spacerDecorations);
 
-    // Added lines
+    // Committed decorations
     const addedDecorations: vscode.DecorationOptions[] = diff.addedLines
       .filter(line => line <= lastLine)
-      .map(line => ({
-        range: new vscode.Range(line, 0, line, 0),
-      }));
+      .map(line => ({ range: new vscode.Range(line, 0, line, 0) }));
 
-    // Modified lines — hover is handled by DeletionHoverProvider
     const modifiedDecorations: vscode.DecorationOptions[] = diff.modifiedPairs
       .filter(pair => pair.newLine <= lastLine)
-      .map(pair => ({
-        range: new vscode.Range(pair.newLine, 0, pair.newLine, 0),
-      }));
+      .map(pair => ({ range: new vscode.Range(pair.newLine, 0, pair.newLine, 0) }));
 
-    // Deleted groups — label rendered via `before` with theme red colors
     const deletedDecorations: vscode.DecorationOptions[] = diff.deletedGroups.map(group => {
       const line = Math.min(group.anchorLine, lastLine);
       return {
@@ -91,12 +73,42 @@ export class DecorationManager {
         },
       };
     });
-    editor.setDecorations(this.decorationTypes.deleted, deletedDecorations);
 
     editor.setDecorations(this.decorationTypes.added, addedDecorations);
     editor.setDecorations(this.decorationTypes.modified, modifiedDecorations);
+    editor.setDecorations(this.decorationTypes.deleted, deletedDecorations);
 
-    // Update hover provider with deletion/modification data for this file
+    // Uncommitted overlay — second diff against HEAD (working tree changes)
+    if (this.showUncommittedOverlay && mode !== 'branchHead') {
+      const rawUncommitted = await this.gitService.getDiffForFile('HEAD', relativePath, true);
+      if (rawUncommitted) {
+        const uncommittedDiff = parseDiff(rawUncommitted);
+
+        editor.setDecorations(
+          this.decorationTypes.addedUncommitted,
+          uncommittedDiff.addedLines
+            .filter(line => line <= lastLine)
+            .map(line => ({ range: new vscode.Range(line, 0, line, 0) })),
+        );
+        editor.setDecorations(
+          this.decorationTypes.modifiedUncommitted,
+          uncommittedDiff.modifiedPairs
+            .filter(pair => pair.newLine <= lastLine)
+            .map(pair => ({ range: new vscode.Range(pair.newLine, 0, pair.newLine, 0) })),
+        );
+        editor.setDecorations(
+          this.decorationTypes.deletedUncommitted,
+          uncommittedDiff.deletedGroups.map(group => ({
+            range: new vscode.Range(Math.min(group.anchorLine, lastLine), 0, Math.min(group.anchorLine, lastLine), 0),
+          })),
+        );
+      } else {
+        this.clearUncommittedOverlay(editor);
+      }
+    } else {
+      this.clearUncommittedOverlay(editor);
+    }
+
     this.hoverProvider.update(editor.document.uri.toString(), diff.deletedGroups, diff.modifiedPairs);
 
     return {
@@ -106,11 +118,18 @@ export class DecorationManager {
     };
   }
 
+  private clearUncommittedOverlay(editor: vscode.TextEditor) {
+    editor.setDecorations(this.decorationTypes.addedUncommitted, []);
+    editor.setDecorations(this.decorationTypes.modifiedUncommitted, []);
+    editor.setDecorations(this.decorationTypes.deletedUncommitted, []);
+  }
+
   clearDecorations(editor: vscode.TextEditor) {
     editor.setDecorations(this.decorationTypes.spacer, []);
     editor.setDecorations(this.decorationTypes.added, []);
     editor.setDecorations(this.decorationTypes.modified, []);
     editor.setDecorations(this.decorationTypes.deleted, []);
+    this.clearUncommittedOverlay(editor);
     this.hoverProvider.clear(editor.document.uri.toString());
   }
 
@@ -125,7 +144,7 @@ export class DecorationManager {
   recreateDecorationTypes() {
     this.decorationTypes.dispose();
     const config = getConfig();
-    this.decorationTypes = new DecorationTypes(this.extensionPath, config.showGutterIcons, this.isUncommitted(this.currentMode ?? 'branchHead'));
+    this.decorationTypes = new DecorationTypes(this.extensionPath, config.showGutterIcons);
   }
 
   dispose() {

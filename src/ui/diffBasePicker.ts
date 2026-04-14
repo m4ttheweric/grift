@@ -9,11 +9,6 @@ interface DiffBaseOption {
 
 const OPTIONS: DiffBaseOption[] = [
   {
-    label: 'Uncommitted',
-    description: 'Working tree changes not yet committed (vs HEAD)',
-    mode: 'branchHead',
-  },
-  {
     label: 'Branch base',
     description: 'Committed changes since branch diverged from main/master',
     mode: 'branchBase',
