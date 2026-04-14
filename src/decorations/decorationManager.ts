@@ -43,16 +43,9 @@ export class DecorationManager {
     const diff = parseDiff(rawDiff);
     const lastLine = editor.document.lineCount - 1;
 
-    // Deletion anchor lines get the -N label as their before element, so skip the
-    // spacer on those lines to avoid a gap between the border and the label.
-    const deletionAnchorLines = new Set(
-      diff.deletedGroups.map(g => Math.min(g.anchorLine, lastLine))
-    );
     const spacerDecorations: vscode.DecorationOptions[] = [];
     for (let i = 0; i <= lastLine; i++) {
-      if (!deletionAnchorLines.has(i)) {
-        spacerDecorations.push({ range: new vscode.Range(i, 0, i, 0) });
-      }
+      spacerDecorations.push({ range: new vscode.Range(i, 0, i, 0) });
     }
     editor.setDecorations(this.decorationTypes.spacer, spacerDecorations);
 
@@ -74,7 +67,7 @@ export class DecorationManager {
             contentText: `-${group.lines.length}`,
             color: new vscode.ThemeColor('gitDecoration.deletedResourceForeground'),
             backgroundColor: new vscode.ThemeColor('diffEditor.removedTextBackground'),
-            margin: '0 4px 0 0',
+            margin: '0 4px 0 -1ch',
           },
         },
       };
@@ -90,14 +83,6 @@ export class DecorationManager {
       if (rawUncommitted) {
         const uncommittedDiff = parseDiff(rawUncommitted);
 
-        // Also exclude uncommitted deletion anchors from the spacer
-        const uncommittedAnchorLines = new Set(
-          uncommittedDiff.deletedGroups.map(g => Math.min(g.anchorLine, lastLine))
-        );
-        const filteredSpacers = spacerDecorations.filter(
-          d => !uncommittedAnchorLines.has((d.range as vscode.Range).start.line)
-        );
-        editor.setDecorations(this.decorationTypes.spacer, filteredSpacers);
 
         editor.setDecorations(
           this.decorationTypes.addedUncommitted,
@@ -123,7 +108,7 @@ export class DecorationManager {
                   contentText: `-${group.lines.length}`,
                   color: new vscode.ThemeColor('gitDecoration.deletedResourceForeground'),
                   backgroundColor: new vscode.ThemeColor('diffEditor.removedTextBackground'),
-                  margin: '0 4px 0 0',
+                  margin: '0 4px 0 -1ch',
                 },
               },
             };
