@@ -24,11 +24,13 @@ export class UnchangedFoldingProvider implements vscode.FoldingRangeProvider {
     this._onDidChangeFoldingRanges.fire();
   }
 
-  /** Mid-line of each unchanged range — used to target editor.fold */
-  getMidLines(fileUri: string): number[] {
-    return (this.rangesByFile.get(fileUri) ?? []).map(
-      r => Math.floor((r.start + r.end) / 2),
-    );
+  /**
+   * Start line of each unchanged range.
+   * editor.fold prioritises ranges that *start at* the selection line,
+   * so using r.start reliably targets our custom ranges over language folds.
+   */
+  getStartLines(fileUri: string): number[] {
+    return (this.rangesByFile.get(fileUri) ?? []).map(r => r.start);
   }
 
   provideFoldingRanges(document: vscode.TextDocument): vscode.FoldingRange[] {

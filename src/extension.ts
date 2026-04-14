@@ -36,7 +36,8 @@ export async function activate(context: vscode.ExtensionContext) {
   decorationManager = new DecorationManager(gitService, context.extensionPath, hoverProvider, foldingProvider);
 
   context.subscriptions.push(
-    vscode.languages.registerFoldingRangeProvider({ pattern: '**/*' }, foldingProvider),
+    vscode.languages.registerFoldingRangeProvider({ scheme: 'file' }, foldingProvider),
+    vscode.languages.registerFoldingRangeProvider({ scheme: 'untitled' }, foldingProvider),
     foldingProvider,
   );
   changedFilesProvider = new ChangedFilesProvider(gitService);
@@ -126,12 +127,12 @@ export async function activate(context: vscode.ExtensionContext) {
         await vscode.commands.executeCommand('editor.unfoldAll');
         isFoldingUnchanged = false;
       } else {
-        const midLines = foldingProvider.getMidLines(editor.document.uri.toString());
-        if (midLines.length === 0) {
+        const startLines = foldingProvider.getStartLines(editor.document.uri.toString());
+        if (startLines.length === 0) {
           vscode.window.showInformationMessage('No unchanged regions to fold — enable Grift first.');
           return;
         }
-        await vscode.commands.executeCommand('editor.fold', { selectionLines: midLines });
+        await vscode.commands.executeCommand('editor.fold', { selectionLines: startLines });
         isFoldingUnchanged = true;
       }
     })
