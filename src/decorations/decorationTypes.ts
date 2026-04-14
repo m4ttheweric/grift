@@ -13,41 +13,66 @@ export class DecorationTypes {
       before: { contentText: '\u00a0', margin: '0 6px 0 0' },
     });
 
-    // Committed: solid 4px border (vivid — these changes are locked in)
-    // Uncommitted: dashed 2px border (same colors, visually lighter — still in progress)
-    const borderStyle = uncommitted ? 'dashed' : 'solid';
-    const borderWidth = uncommitted ? '0 0 0 2px' : '0 0 0 4px';
-
     const addedColor = new vscode.ThemeColor('gitDecoration.addedResourceForeground');
     const modifiedColor = new vscode.ThemeColor('editorGutter.modifiedBackground');
     const deletedColor = new vscode.ThemeColor('gitDecoration.deletedResourceForeground');
 
-    this.added = vscode.window.createTextEditorDecorationType({
-      isWholeLine: true,
-      borderWidth,
-      borderStyle,
-      borderColor: addedColor,
-      overviewRulerColor: addedColor,
-      overviewRulerLane: vscode.OverviewRulerLane.Left,
-    });
-
-    this.modified = vscode.window.createTextEditorDecorationType({
-      isWholeLine: true,
-      borderWidth,
-      borderStyle,
-      borderColor: modifiedColor,
-      overviewRulerColor: modifiedColor,
-      overviewRulerLane: vscode.OverviewRulerLane.Left,
-    });
-
-    this.deleted = vscode.window.createTextEditorDecorationType({
-      isWholeLine: true,
-      borderWidth,
-      borderStyle,
-      borderColor: deletedColor,
-      overviewRulerColor: deletedColor,
-      overviewRulerLane: vscode.OverviewRulerLane.Left,
-    });
+    if (uncommitted) {
+      // Uncommitted: subtle background tint, thinner border
+      this.added = vscode.window.createTextEditorDecorationType({
+        isWholeLine: true,
+        backgroundColor: new vscode.ThemeColor('diffEditor.insertedLineBackground'),
+        borderWidth: '0 0 0 2px',
+        borderStyle: 'solid',
+        borderColor: addedColor,
+        overviewRulerColor: addedColor,
+        overviewRulerLane: vscode.OverviewRulerLane.Left,
+      });
+      this.modified = vscode.window.createTextEditorDecorationType({
+        isWholeLine: true,
+        backgroundColor: new vscode.ThemeColor('diffEditor.changedLineBackground'),
+        borderWidth: '0 0 0 2px',
+        borderStyle: 'solid',
+        borderColor: modifiedColor,
+        overviewRulerColor: modifiedColor,
+        overviewRulerLane: vscode.OverviewRulerLane.Left,
+      });
+      this.deleted = vscode.window.createTextEditorDecorationType({
+        isWholeLine: true,
+        backgroundColor: new vscode.ThemeColor('diffEditor.removedLineBackground'),
+        borderWidth: '0 0 0 2px',
+        borderStyle: 'solid',
+        borderColor: deletedColor,
+        overviewRulerColor: deletedColor,
+        overviewRulerLane: vscode.OverviewRulerLane.Left,
+      });
+    } else {
+      // Committed: solid 4px border only, no background
+      this.added = vscode.window.createTextEditorDecorationType({
+        isWholeLine: true,
+        borderWidth: '0 0 0 4px',
+        borderStyle: 'solid',
+        borderColor: addedColor,
+        overviewRulerColor: addedColor,
+        overviewRulerLane: vscode.OverviewRulerLane.Left,
+      });
+      this.modified = vscode.window.createTextEditorDecorationType({
+        isWholeLine: true,
+        borderWidth: '0 0 0 4px',
+        borderStyle: 'solid',
+        borderColor: modifiedColor,
+        overviewRulerColor: modifiedColor,
+        overviewRulerLane: vscode.OverviewRulerLane.Left,
+      });
+      this.deleted = vscode.window.createTextEditorDecorationType({
+        isWholeLine: true,
+        borderWidth: '0 0 0 4px',
+        borderStyle: 'solid',
+        borderColor: deletedColor,
+        overviewRulerColor: deletedColor,
+        overviewRulerLane: vscode.OverviewRulerLane.Left,
+      });
+    }
   }
 
   dispose() {
