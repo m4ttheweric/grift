@@ -55,7 +55,6 @@ Toggle the diff view with `Cmd+Shift+D` (`Ctrl+Shift+D` on Windows/Linux), or ru
 | Setting | Default | Description |
 | --- | --- | --- |
 | `grift.defaultDiffBase` | `branchBase` | what to diff against: `branchBase` (commits since you branched off main), `localMain`, `originMain`, `originBranch` (unpushed commits), or `branch` (a specific branch) |
-| `grift.showGutterIcons` | `true` | show colored icons next to changed lines |
 | `grift.enableOnStartup` | `false` | turn the diff view on automatically when a file opens |
 | `grift.theme` | `default` | color palette: `default`, `jewel`, `ocean`, `synthwave`, `sunset`, or `mono` |
 | `grift.showUncommittedOverlayByDefault` | `true` | start with the uncommitted overlay enabled |

@@ -12,15 +12,10 @@ export class ChangedFilesProvider implements vscode.TreeDataProvider<FileItem> {
 
   constructor(private gitService: GitService) {}
 
-  async refresh(mode: DiffBaseMode) {
+  async refresh(mode: DiffBaseMode, branchName?: string) {
     this.repoRoot = await this.gitService.getRepoRoot();
-    const ref = await this.gitService.resolveRef(mode);
+    const ref = await this.gitService.resolveRef(mode, branchName);
     this.files = ref ? await this.gitService.getChangedFiles(ref) : [];
-    this._onDidChangeTreeData.fire();
-  }
-
-  clear() {
-    this.files = [];
     this._onDidChangeTreeData.fire();
   }
 

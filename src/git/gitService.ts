@@ -1,5 +1,6 @@
 import { execFile } from 'child_process';
 import { promisify } from 'util';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { DiffBaseMode } from '../types';
 
@@ -32,41 +33,35 @@ export class GitService {
     }
   }
 
-  async getDefaultBranch(): Promise<string> {
-    // Try main, then master, then fall back to main
-    for (const branch of ['main', 'master']) {
+  async getDefaultBranch(): Promise<string | undefined> {
+    return this.firstExistingRef(['main', 'master']);
+  }
+
+  async getDefaultRemoteBranch(): Promise<string | undefined> {
+    return this.firstExistingRef(['origin/main', 'origin/master']);
+  }
+
+  private async firstExistingRef(candidates: string[]): Promise<string | undefined> {
+    for (const ref of candidates) {
       try {
-        await this.gitFromRepo(['rev-parse', '--verify', branch]);
-        return branch;
+        await this.gitFromRepo(['rev-parse', '--verify', ref]);
+        return ref;
       } catch {
         continue;
       }
     }
-    return 'main';
+    return undefined;
   }
 
-  async getDefaultRemoteBranch(): Promise<string> {
-    for (const branch of ['origin/main', 'origin/master']) {
-      try {
-        await this.gitFromRepo(['rev-parse', '--verify', branch]);
-        return branch;
-      } catch {
-        continue;
-      }
-    }
-    return 'origin/main';
-  }
-
-  async resolveRef(mode: DiffBaseMode): Promise<string | undefined> {
+  async resolveRef(mode: DiffBaseMode, branchName?: string): Promise<string | undefined> {
     try {
       switch (mode) {
         case 'branchBase': {
-          // Prefer origin/main for merge-base — local main is often stale.
-          // Fall back to local main/master if no remote exists.
-          const candidates = ['origin/main', 'origin/master', 'main', 'master'];
-          for (const branch of candidates) {
+          // Prefer origin/main for merge-base... local main is often stale.
+          // Fall back to local main/master if no remote exists or histories
+          // are unrelated.
+          for (const branch of ['origin/main', 'origin/master', 'main', 'master']) {
             try {
-              await this.gitFromRepo(['rev-parse', '--verify', branch]);
               const { stdout } = await this.gitFromRepo(['merge-base', 'HEAD', branch]);
               return stdout.trim();
             } catch {
@@ -76,15 +71,11 @@ export class GitService {
           return undefined;
         }
 
-        case 'localMain': {
-          const defaultBranch = await this.getDefaultBranch();
-          return defaultBranch;
-        }
+        case 'localMain':
+          return this.getDefaultBranch();
 
-        case 'originMain': {
-          const remoteBranch = await this.getDefaultRemoteBranch();
-          return remoteBranch;
-        }
+        case 'originMain':
+          return this.getDefaultRemoteBranch();
 
         case 'originBranch': {
           const currentBranch = await this.getCurrentBranch();
@@ -96,9 +87,28 @@ export class GitService {
             return undefined;
           }
         }
+
+        case 'branch': {
+          if (!branchName) return undefined;
+          try {
+            await this.gitFromRepo(['rev-parse', '--verify', branchName]);
+            return branchName;
+          } catch {
+            return undefined;
+          }
+        }
       }
     } catch {
       return undefined;
+    }
+  }
+
+  async getBranches(): Promise<string[]> {
+    try {
+      const { stdout } = await this.gitFromRepo(['branch', '--format=%(refname:short)']);
+      return stdout.trim().split('\n').filter(b => b.length > 0);
+    } catch {
+      return [];
     }
   }
 
@@ -138,28 +148,6 @@ export class GitService {
     }
   }
 
-  async getDiffStats(ref: string): Promise<{ added: number; deleted: number }> {
-    try {
-      const { stdout } = await this.gitFromRepo([
-        'diff',
-        ref,
-        '--numstat',
-      ]);
-      let added = 0;
-      let deleted = 0;
-      for (const line of stdout.trim().split('\n')) {
-        if (!line) continue;
-        const parts = line.split('\t');
-        if (parts[0] === '-') continue; // binary file
-        added += parseInt(parts[0], 10) || 0;
-        deleted += parseInt(parts[1], 10) || 0;
-      }
-      return { added, deleted };
-    } catch {
-      return { added: 0, deleted: 0 };
-    }
-  }
-
   async getFileAtRef(ref: string, relativePath: string): Promise<string> {
     try {
       const { stdout } = await this.gitFromRepo(['show', `${ref}:${relativePath}`]);
@@ -171,8 +159,11 @@ export class GitService {
 
   getRelativePath(filePath: string): string | undefined {
     if (!this.repoRoot) return undefined;
-    if (!filePath.startsWith(this.repoRoot)) return undefined;
-    return filePath.substring(this.repoRoot.length + 1);
+    // Match on a full path segment so a sibling like /repo-backup doesn't
+    // pass a bare startsWith(/repo) check.
+    const prefix = this.repoRoot + path.sep;
+    if (!filePath.startsWith(prefix)) return undefined;
+    return filePath.substring(prefix.length);
   }
 
   private async git(args: string[], cwd: string): Promise<{ stdout: string; stderr: string }> {

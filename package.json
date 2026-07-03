@@ -38,10 +38,28 @@
         "title": "Grift: Refresh"
       },
       {
+        "command": "grift.showDiff",
+        "title": "Grift: Open Side-by-Side Diff",
+        "icon": "$(git-compare)"
+      },
+      {
+        "command": "grift.toggleInlineRemovals",
+        "title": "Grift: Toggle Inline Removal Diff"
+      },
+      {
         "command": "grift.toggleUncommitted",
         "title": "Grift: Toggle Uncommitted Overlay"
       }
     ],
+    "menus": {
+      "view/item/context": [
+        {
+          "command": "grift.showDiff",
+          "when": "view == grift.changedFiles && viewItem == griftFile",
+          "group": "inline"
+        }
+      ]
+    },
     "keybindings": [
       {
         "command": "grift.toggle",
@@ -55,24 +73,39 @@
         "grift.defaultDiffBase": {
           "type": "string",
           "default": "branchBase",
-          "enum": ["branchBase", "localMain", "originMain", "originBranch"],
+          "enum": ["branchBase", "localMain", "originMain", "originBranch", "branch"],
           "enumDescriptions": [
             "Branch base — committed changes since branch diverged from main/master",
             "Local main/master — diff against local main/master tip",
             "Origin main/master — diff against remote main/master tip",
-            "Origin current branch — unpushed commits vs remote tracking branch"
+            "Origin current branch — unpushed commits vs remote tracking branch",
+            "Branch — diff against a specific branch"
           ],
           "description": "Default diff base mode"
-        },
-        "grift.showGutterIcons": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show colored gutter icons next to changed lines"
         },
         "grift.enableOnStartup": {
           "type": "boolean",
           "default": false,
           "description": "Automatically enable diff view when a file is opened"
+        },
+        "grift.theme": {
+          "type": "string",
+          "default": "default",
+          "enum": ["default", "jewel", "ocean", "synthwave", "sunset", "mono"],
+          "enumDescriptions": [
+            "Default — GitHub green / yellow / red",
+            "Jewel — emerald / amber / ruby",
+            "Ocean — sky / teal / indigo (no warm colors)",
+            "Synthwave — cyan / magenta / violet (neon)",
+            "Sunset — peach / pink / deep purple",
+            "Mono — slate scale (lightness only)"
+          ],
+          "description": "Color palette grift uses for diff decorations"
+        },
+        "grift.showUncommittedOverlayByDefault": {
+          "type": "boolean",
+          "default": true,
+          "description": "When grift activates, start with the uncommitted overlay enabled"
         }
       }
     }
@@ -82,7 +115,7 @@
     "watch": "npm run build -- --watch",
     "vscode:prepublish": "npm run build -- --minify",
     "package": "vsce package",
-    "install-local": "npm run package && /Applications/Visual\\ Studio\\ Code.app/Contents/Resources/app/bin/code --install-extension grift-0.1.0.vsix --force && /usr/local/bin/cursor --install-extension grift-0.1.0.vsix --force && /Applications/Antigravity.app/Contents/Resources/app/bin/antigravity --install-extension grift-0.1.0.vsix --force"
+    "install-local": "npm run package && /Applications/Cursor.app/Contents/Resources/app/bin/cursor --install-extension grift-0.1.0.vsix --force && '/Applications/Antigravity IDE.app/Contents/Resources/app/bin/antigravity-ide' --install-extension grift-0.1.0.vsix --force && '/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code' --install-extension grift-0.1.0.vsix --force"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",

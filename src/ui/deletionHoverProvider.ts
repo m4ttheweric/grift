@@ -19,6 +19,11 @@ export class DeletionHoverProvider implements vscode.HoverProvider {
     this.modificationsByFile.delete(fileUri);
   }
 
+  clearAll() {
+    this.deletionsByFile.clear();
+    this.modificationsByFile.clear();
+  }
+
   provideHover(
     document: vscode.TextDocument,
     position: vscode.Position,
@@ -47,7 +52,10 @@ export class DeletionHoverProvider implements vscode.HoverProvider {
       md.appendMarkdown(`**Modified** — was:\n\`\`\`diff\n- ${pair.oldContent}\n\`\`\`\n\n`);
     }
 
-    md.appendMarkdown(`[$(diff) Open diff](command:grift.showDiff)`);
+    // Pass the document URI through the markdown command link so the command
+    // works on the hovered file even when activeTextEditor differs.
+    const args = encodeURIComponent(JSON.stringify([document.uri.toString()]));
+    md.appendMarkdown(`[$(diff) Open full diff](command:grift.showDiff?${args})`);
 
     const lineRange = document.lineAt(line).range;
     return new vscode.Hover(md, lineRange);

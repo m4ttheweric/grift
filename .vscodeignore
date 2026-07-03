@@ -1,4 +1,7 @@
 src/
 .vscode/
+.claude/
+.gitignore
 tsconfig.json
-*.map
+**/*.map
+*.vsix

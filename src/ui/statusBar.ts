@@ -29,10 +29,6 @@ export class StatusBar {
     this.item.show();
   }
 
-  hide() {
-    this.item.hide();
-  }
-
   dispose() {
     this.item.dispose();
   }
