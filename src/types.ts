@@ -1,5 +1,7 @@
 export type DiffBaseMode = 'branchBase' | 'localMain' | 'originMain' | 'originBranch' | 'branch';
 
+export type FileViewMode = 'tree' | 'flat';
+
 export type GriftTheme = 'default' | 'jewel' | 'ocean' | 'synthwave' | 'sunset' | 'mono';
 
 export interface LineChange {
