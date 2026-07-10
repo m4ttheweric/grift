@@ -8,11 +8,12 @@ import { pickDiffBase } from './ui/diffBasePicker';
 import { DeletionHoverProvider } from './ui/deletionHoverProvider';
 import { DeletionCommentsProvider } from './ui/deletionCommentsProvider';
 import { ChangedFilesProvider } from './ui/changedFilesProvider';
-import { DiffBaseMode } from './types';
+import { DiffBaseMode, FileViewMode } from './types';
 import { getConfig } from './config';
 
 let isActive = false;
 let currentMode: DiffBaseMode = 'branchBase';
+let fileViewMode: FileViewMode = 'tree';
 let selectedBranch: string | undefined;
 let extContext: vscode.ExtensionContext;
 let gitService: GitService;
@@ -38,10 +39,13 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push({ dispose: () => commentsProvider.dispose() });
 
   changedFilesProvider = new ChangedFilesProvider(gitService);
+  fileViewMode = context.workspaceState.get<FileViewMode>('fileViewMode', 'tree');
+  changedFilesProvider.viewMode = fileViewMode;
+  await vscode.commands.executeCommand('setContext', 'grift.fileViewMode', fileViewMode);
 
   changedFilesView = vscode.window.createTreeView('grift.changedFiles', {
     treeDataProvider: changedFilesProvider,
-    showCollapseAll: false,
+    showCollapseAll: true,
   });
   context.subscriptions.push(changedFilesView);
 
@@ -163,6 +167,11 @@ export async function activate(context: vscode.ExtensionContext) {
     })
   );
 
+  context.subscriptions.push(
+    vscode.commands.registerCommand('grift.viewAsTree', () => setFileViewMode('tree')),
+    vscode.commands.registerCommand('grift.viewAsFlat', () => setFileViewMode('flat')),
+  );
+
   // Active editor change
   context.subscriptions.push(
     vscode.window.onDidChangeActiveTextEditor(async (editor) => {
@@ -262,6 +271,13 @@ function getModeLabel(mode: DiffBaseMode): string {
     case 'originBranch': return 'Origin Branch';
     case 'branch': return selectedBranch ?? 'Branch';
   }
+}
+
+async function setFileViewMode(mode: FileViewMode) {
+  fileViewMode = mode;
+  changedFilesProvider.setViewMode(mode);
+  await extContext.workspaceState.update('fileViewMode', mode);
+  await vscode.commands.executeCommand('setContext', 'grift.fileViewMode', mode);
 }
 
 function updateViewDescription() {

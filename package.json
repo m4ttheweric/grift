@@ -49,6 +49,16 @@
       {
         "command": "grift.toggleUncommitted",
         "title": "Grift: Toggle Uncommitted Overlay"
+      },
+      {
+        "command": "grift.viewAsTree",
+        "title": "Grift: View Changed Files as Tree",
+        "icon": "$(list-tree)"
+      },
+      {
+        "command": "grift.viewAsFlat",
+        "title": "Grift: View Changed Files as List",
+        "icon": "$(list-flat)"
       }
     ],
     "menus": {
@@ -57,6 +67,18 @@
           "command": "grift.showDiff",
           "when": "view == grift.changedFiles && viewItem == griftFile",
           "group": "inline"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "grift.viewAsTree",
+          "when": "view == grift.changedFiles && grift.fileViewMode == flat",
+          "group": "navigation"
+        },
+        {
+          "command": "grift.viewAsFlat",
+          "when": "view == grift.changedFiles && grift.fileViewMode == tree",
+          "group": "navigation"
         }
       ]
     },
