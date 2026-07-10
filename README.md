@@ -13,7 +13,7 @@ Grift compares your working tree against a base ref and decorates the active edi
 - deleted lines show as a `-N` annotation, or as a collapsible comment thread with the removed code
 - hovering a changed line previews the change and links to the full side-by-side diff
 - the overview ruler (the scrollbar lane) gets matching markers so changes are visible at a glance
-- a "Grift" view in the Source Control sidebar lists every changed file with its +/- counts
+- a "Grift" view in the Source Control sidebar lists every changed file with its +/- counts, as a GitLab-style directory tree or a flat list (toggle in the view's title bar)
 
 It tracks two layers at once, in different shades so you can tell them apart: committed changes since your branch diverged, and uncommitted working-tree changes.
 
